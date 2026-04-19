@@ -1,0 +1,39 @@
+/* src/pages/Orders.css */
+
+.orders-page { animation: fadeIn 0.3s ease; }
+
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px;
+  align-items: center;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.sortable:hover { color: var(--text); }
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--text3);
+  font-size: 11px;
+}
+.sort-icon.active { color: var(--accent); }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.page-info {
+  font-size: 13px;
+  color: var(--text2);
+}

@@ -1,0 +1,57 @@
+/* src/pages/SKUPricing.css */
+
+.sku-page { animation: fadeIn 0.3s ease; }
+
+.bulk-hint {
+  font-size: 12px;
+  color: var(--text2);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+}
+
+.bulk-hint code {
+  font-family: var(--mono);
+  background: var(--bg2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.add-form-card { margin-bottom: 0; }
+
+.form-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+
+.add-form {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.add-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 160px;
+}
+
+.add-form .field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+}
+
+.price-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
