@@ -1,37 +1,21 @@
-// src/pages/Dashboard.js
-
+// Dashboard.js
 import React, { useEffect, useState, useCallback } from "react";
-import {
-  AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer
-} from "recharts";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import api from "../utils/api";
 import "./Dashboard.css";
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
-function StatCard({ label, value, sub, color }) {
-  return (
-    <div className="stat-card fade-in">
-      <div className="stat-label">{label}</div>
-      <div className="stat-value" style={color ? { color } : {}}>
-        {value}
-      </div>
-      {sub && <div className="stat-sub">{sub}</div>}
-    </div>
-  );
-}
+const fmt = (n) => n === null || n === undefined ? "—" : `₹${Number(n).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+const fmtDate = (d) => new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
 
-// ── Format currency ────────────────────────────────────────────────────────────
-const fmt = (n) =>
-  n === null || n === undefined
-    ? "—"
-    : `₹${Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+const STATS = (s) => [
+  { label: "Total Orders", value: s?.totalOrders ?? 0, sub: `${s?.matchedOrders ?? 0} matched · ${s?.pendingOrders ?? 0} pending`, icon: "📦", accent: "linear-gradient(90deg,#2563eb,#60a5fa)", iconBg: "#eff6ff" },
+  { label: "Total Revenue", value: fmt(s?.totalRevenue), sub: "Bank settlements", icon: "💳", accent: "linear-gradient(90deg,#7c3aed,#a78bfa)", iconBg: "#f5f3ff" },
+  { label: "Total Cost", value: fmt(s?.totalCost), sub: "Purchase prices", icon: "🏷️", accent: "linear-gradient(90deg,#d97706,#fbbf24)", iconBg: "#fffbeb" },
+  { label: "Total Profit", value: fmt(s?.totalProfit), sub: `Avg ${fmt(s?.avgProfit)} per order`, icon: "📈", accent: s?.totalProfit >= 0 ? "linear-gradient(90deg,#059669,#34d399)" : "linear-gradient(90deg,#dc2626,#f87171)", iconBg: s?.totalProfit >= 0 ? "#ecfdf5" : "#fef2f2", valueColor: s?.totalProfit >= 0 ? "#059669" : "#dc2626" },
+  { label: "Loss Orders", value: s?.lossOrders ?? 0, sub: "Negative profit", icon: "⚠️", accent: "linear-gradient(90deg,#dc2626,#f87171)", iconBg: "#fef2f2", valueColor: "#dc2626" },
+  { label: "Pending", value: s?.pendingOrders ?? 0, sub: "Awaiting match", icon: "⏳", accent: "linear-gradient(90deg,#0891b2,#22d3ee)", iconBg: "#ecfeff" },
+];
 
-const fmtDate = (d) =>
-  new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-
-// ── Custom tooltip ─────────────────────────────────────────────────────────────
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
@@ -39,9 +23,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div className="tooltip-label">{label}</div>
       {payload.map((p, i) => (
         <div key={i} className="tooltip-row" style={{ color: p.color }}>
-          {p.name}: {p.name.includes("₹") || p.name.toLowerCase().includes("profit") || p.name.toLowerCase().includes("revenue")
-            ? fmt(p.value)
-            : p.value}
+          {p.name}: {typeof p.value === "number" && p.value > 100 ? fmt(p.value) : p.value}
         </div>
       ))}
     </div>
@@ -55,7 +37,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(30);
 
-  const loadData = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [s, p, o] = await Promise.all([
@@ -66,130 +48,124 @@ export default function Dashboard() {
       setSummary(s.data.data);
       setProfitChart(p.data.data);
       setOrdersChart(o.data.data);
-    } catch (err) {
-      console.error("Dashboard load error", err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
   }, [days]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => { load(); }, [load]);
 
-  if (loading) return (
-    <div className="loading-center">
-      <div className="spinner" style={{ width: 32, height: 32 }} />
-    </div>
-  );
+  if (loading) return <div className="loading-center"><span className="spinner" style={{ width: 32, height: 32 }} /></div>;
 
-  const profitColor = summary?.totalProfit >= 0 ? "var(--green)" : "var(--red)";
+  const stats = STATS(summary);
 
   return (
     <div className="dashboard">
-      {/* Header */}
-      <div className="page-header flex justify-between items-center">
-        <div>
+      <div className="dash-top">
+        <div className="page-header" style={{ marginBottom: 0 }}>
           <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Your profitability at a glance</p>
+          <p className="page-subtitle">Your profitability overview</p>
         </div>
-        <select
-          className="days-select"
-          value={days}
-          onChange={(e) => setDays(Number(e.target.value))}
-        >
+        <select className="days-select" value={days} onChange={(e) => setDays(Number(e.target.value))}>
           <option value={7}>Last 7 days</option>
           <option value={30}>Last 30 days</option>
           <option value={90}>Last 90 days</option>
         </select>
       </div>
 
-      {/* ── Stat Cards ── */}
+      {/* Summary banner */}
+      {summary && (
+        <div className="summary-banner fade-in">
+          <div className="summary-banner-item">
+            <span className="summary-banner-label">Revenue</span>
+            <span className="summary-banner-value">{fmt(summary.totalRevenue)}</span>
+          </div>
+          <div className="summary-banner-divider" />
+          <div className="summary-banner-item">
+            <span className="summary-banner-label">Cost</span>
+            <span className="summary-banner-value">{fmt(summary.totalCost)}</span>
+          </div>
+          <div className="summary-banner-divider" />
+          <div className="summary-banner-item">
+            <span className="summary-banner-label">Net Profit</span>
+            <span className="summary-banner-value" style={{ color: summary.totalProfit >= 0 ? "#059669" : "#dc2626" }}>
+              {fmt(summary.totalProfit)}
+            </span>
+          </div>
+          <div className="summary-banner-divider" />
+          <div className="summary-banner-item">
+            <span className="summary-banner-label">Matched Orders</span>
+            <span className="summary-banner-value">{summary.matchedOrders}</span>
+          </div>
+          <div className="summary-banner-divider" />
+          <div className="summary-banner-item">
+            <span className="summary-banner-label">Avg Profit/Order</span>
+            <span className="summary-banner-value">{fmt(summary.avgProfit)}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Stat cards */}
       <div className="stats-grid">
-        <StatCard
-          label="Total Orders"
-          value={summary?.totalOrders ?? 0}
-          sub={`${summary?.matchedOrders ?? 0} matched · ${summary?.pendingOrders ?? 0} pending`}
-        />
-        <StatCard
-          label="Total Revenue"
-          value={fmt(summary?.totalRevenue)}
-          sub="Bank settlements"
-          color="var(--text)"
-        />
-        <StatCard
-          label="Total Cost"
-          value={fmt(summary?.totalCost)}
-          sub="Purchase prices"
-          color="var(--yellow)"
-        />
-        <StatCard
-          label="Total Profit"
-          value={fmt(summary?.totalProfit)}
-          sub={`Avg ${fmt(summary?.avgProfit)} per order`}
-          color={profitColor}
-        />
-        <StatCard
-          label="Loss Orders"
-          value={summary?.lossOrders ?? 0}
-          sub="Orders with negative profit"
-          color="var(--red)"
-        />
-        <StatCard
-          label="Pending Orders"
-          value={summary?.pendingOrders ?? 0}
-          sub="Awaiting settlement or pickup"
-          color="var(--yellow)"
-        />
+        {stats.map((s, i) => (
+          <div key={i} className="stat-card fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+            <div className="stat-card-accent" style={{ background: s.accent }} />
+            <div className="stat-icon" style={{ background: s.iconBg }}>{s.icon}</div>
+            <div className="stat-label">{s.label}</div>
+            <div className="stat-value" style={s.valueColor ? { color: s.valueColor } : {}}>{s.value}</div>
+            <div className="stat-sub">{s.sub}</div>
+          </div>
+        ))}
       </div>
 
-      {/* ── Charts ── */}
+      {/* Charts */}
       <div className="charts-grid">
-        {/* Profit over time */}
         <div className="card chart-card">
           <div className="chart-header">
-            <div className="chart-title">Profit & Revenue Over Time</div>
+            <div className="chart-title">Profit & Revenue</div>
+            <div className="chart-subtitle">Over time (last {days} days)</div>
           </div>
           {profitChart.length === 0 ? (
-            <div className="chart-empty">No matched orders in this period</div>
+            <div className="chart-empty"><div className="chart-empty-icon">📊</div>No matched orders in this period</div>
           ) : (
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={profitChart} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
                 <defs>
-                  <linearGradient id="profitGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
-                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  <linearGradient id="profGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#059669" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#059669" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a3347" />
-                <XAxis dataKey="date" tickFormatter={fmtDate} stroke="#5a6580" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#5a6580" tick={{ fontSize: 11 }} tickFormatter={(v) => `₹${v}`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="date" tickFormatter={fmtDate} stroke="#cbd5e1" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                <YAxis stroke="#cbd5e1" tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(v) => `₹${v}`} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" fill="url(#revenueGrad)" strokeWidth={2} dot={false} />
-                <Area type="monotone" dataKey="profit" name="Profit" stroke="#10b981" fill="url(#profitGrad)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#2563eb" fill="url(#revGrad)" strokeWidth={2} dot={false} />
+                <Area type="monotone" dataKey="profit" name="Profit" stroke="#059669" fill="url(#profGrad)" strokeWidth={2} dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           )}
         </div>
 
-        {/* Orders per day */}
         <div className="card chart-card">
           <div className="chart-header">
             <div className="chart-title">Orders Per Day</div>
+            <div className="chart-subtitle">Total vs matched orders</div>
           </div>
           {ordersChart.length === 0 ? (
-            <div className="chart-empty">No orders in this period</div>
+            <div className="chart-empty"><div className="chart-empty-icon">📦</div>No orders in this period</div>
           ) : (
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={220}>
               <BarChart data={ordersChart} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2a3347" />
-                <XAxis dataKey="date" tickFormatter={fmtDate} stroke="#5a6580" tick={{ fontSize: 11 }} />
-                <YAxis stroke="#5a6580" tick={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="date" tickFormatter={fmtDate} stroke="#cbd5e1" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                <YAxis stroke="#cbd5e1" tick={{ fontSize: 11, fill: "#94a3b8" }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="total" name="Total Orders" fill="#3b82f6" radius={[4, 4, 0, 0]} opacity={0.8} />
-                <Bar dataKey="matched" name="Matched" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" name="Total" fill="#bfdbfe" radius={[4,4,0,0]} />
+                <Bar dataKey="matched" name="Matched" fill="#2563eb" radius={[4,4,0,0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

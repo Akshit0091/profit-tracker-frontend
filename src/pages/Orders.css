@@ -1,39 +1,37 @@
-/* src/pages/Orders.css */
+/* Orders.css */
+.orders-page { animation: fadeUp 0.3s ease; }
 
-.orders-page { animation: fadeIn 0.3s ease; }
+.orders-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 
-.filters-bar {
+.filters-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 16px;
   align-items: center;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
-.sortable {
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
+.sortable { cursor: pointer; user-select: none; white-space: nowrap; }
 .sortable:hover { color: var(--text); }
+.sort-icon { display: inline-block; margin-left: 4px; color: var(--text3); font-size: 10px; }
+.sort-icon.active { color: var(--blue); }
 
-.sort-icon {
-  display: inline-block;
-  margin-left: 4px;
-  color: var(--text3);
-  font-size: 11px;
-}
-.sort-icon.active { color: var(--accent); }
+.pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 18px; }
+.page-info { font-size: 13px; color: var(--text2); font-weight: 500; }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.page-info {
+.export-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1.5px solid var(--green-border);
+  padding: 9px 16px;
+  border-radius: var(--r);
   font-size: 13px;
-  color: var(--text2);
+  font-weight: 600;
 }
+.export-btn:hover { background: #d1fae5; }

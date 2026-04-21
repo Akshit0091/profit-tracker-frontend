@@ -1,5 +1,4 @@
-// src/pages/Signup.js
-
+// Signup.js
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -18,13 +17,9 @@ export default function Signup() {
     if (!form.email || !form.password) return toast.error("Please fill all fields");
     if (form.password.length < 6) return toast.error("Password must be at least 6 characters");
     if (form.password !== form.confirm) return toast.error("Passwords do not match");
-
     setLoading(true);
     try {
-      const res = await api.post("/auth/signup", {
-        email: form.email,
-        password: form.password,
-      });
+      const res = await api.post("/auth/signup", { email: form.email, password: form.password });
       login(res.data.token, res.data.user);
       toast.success("Account created! Welcome.");
       navigate("/");
@@ -37,52 +32,58 @@ export default function Signup() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card fade-in">
-        <div className="auth-logo">ProfitTracker</div>
-        <h1 className="auth-title">Create account</h1>
-        <p className="auth-sub">Start tracking your order profitability</p>
+      <div className="auth-split fade-in">
+        <div className="auth-left">
+          <div className="auth-brand">
+            <div className="auth-brand-logo">PT</div>
+            <div className="auth-brand-name">ProfitTracker</div>
+            <div className="auth-brand-tag">Start tracking your Flipkart order profitability today.</div>
+          </div>
+          <div className="auth-features">
+            <div className="auth-feature">
+              <div className="auth-feature-icon">🚀</div>
+              <div className="auth-feature-text">Get started in 2 minutes</div>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">🔒</div>
+              <div className="auth-feature-text">Your data stays private</div>
+            </div>
+            <div className="auth-feature">
+              <div className="auth-feature-icon">💰</div>
+              <div className="auth-feature-text">Know which orders make profit</div>
+            </div>
+          </div>
+        </div>
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="field">
-            <label>Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              autoFocus
-            />
-          </div>
-          <div className="field">
-            <label>Password</label>
-            <input
-              type="password"
-              placeholder="Min. 6 characters"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-          </div>
-          <div className="field">
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Repeat password"
-              value={form.confirm}
-              onChange={(e) => setForm({ ...form, confirm: e.target.value })}
-            />
-          </div>
-          <button
-            type="submit"
-            className="btn-primary auth-btn"
-            disabled={loading}
-          >
-            {loading ? <span className="spinner" /> : "Create Account"}
-          </button>
-        </form>
+        <div className="auth-right">
+          <h1 className="auth-title">Create account ✨</h1>
+          <p className="auth-sub">Start tracking your order profitability</p>
 
-        <p className="auth-switch">
-          Already have an account? <Link to="/login">Sign in</Link>
-        </p>
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="field">
+              <label>Email address</label>
+              <input type="email" placeholder="you@example.com" value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })} autoFocus />
+            </div>
+            <div className="field">
+              <label>Password</label>
+              <input type="password" placeholder="Min. 6 characters" value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })} />
+            </div>
+            <div className="field">
+              <label>Confirm Password</label>
+              <input type="password" placeholder="Repeat your password" value={form.confirm}
+                onChange={(e) => setForm({ ...form, confirm: e.target.value })} />
+            </div>
+            <button type="submit" className="btn-primary auth-btn" disabled={loading}>
+              {loading ? <span className="spinner" /> : "Create Account →"}
+            </button>
+          </form>
+
+          <p className="auth-switch">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
